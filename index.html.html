@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Quest — Dunia Matematik</title>
+<style>
+:root{--navy:#12345a;--blue:#168fe5;--gold:#ffca3a;--cream:#fff9e9;--green:#55bd65}
+*{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:linear-gradient(#b9ecff,#f8fcff);color:var(--navy)}
+.wrap{max-width:1050px;margin:auto;padding:14px}
+header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:#fff;border:2px solid #d4edff;border-radius:18px;padding:12px 16px;box-shadow:0 5px 0 #c5e8fa}
+.brand{font-weight:950;font-size:clamp(22px,4vw,34px);letter-spacing:-1px;color:#ff9d00;text-shadow:2px 2px 0 #12345a}.brand span{display:block;font-size:13px;letter-spacing:1px;color:#12345a;text-shadow:none}
+.stats{display:flex;gap:8px;flex-wrap:wrap}.pill{background:#edf8ff;border:1px solid #c7e9ff;border-radius:12px;padding:8px 12px;font-weight:800}
+.gamebox{margin-top:14px;background:#fff;border:2px solid #cdeaff;border-radius:18px;overflow:hidden;box-shadow:0 7px 0 #b4ddf5}
+canvas{display:block;width:100%;height:auto;touch-action:pan-y;background:#8bdcff}
+.below{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;margin-top:14px}.panel{background:#fff;border:2px solid #d4edff;border-radius:16px;padding:14px;box-shadow:0 4px 0 #d1eaf8}
+h2{font-size:18px;margin:0 0 8px}.muted{color:#476582;font-size:14px;line-height:1.45}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.controls button,.action{border:0;border-radius:12px;padding:10px 14px;font-weight:850;cursor:pointer;background:#168fe5;color:white;box-shadow:0 4px 0 #0863a6}.controls button:active,.action:active{transform:translateY(2px);box-shadow:0 2px 0 #0863a6}
+.touch{display:none;gap:8px;justify-content:center;margin-top:10px}.touch button{width:62px;height:52px;font-size:20px;border:0;border-radius:14px;background:#fff;border:2px solid #a9dfff;color:#12345a;font-weight:900;touch-action:none}
+.overlay{position:fixed;inset:0;background:#08233bc9;display:flex;align-items:center;justify-content:center;padding:18px;z-index:5}.modal{background:#fffdf5;border:4px solid #ffcb46;border-radius:22px;max-width:440px;width:100%;padding:22px;text-align:center;box-shadow:0 8px 0 #c28a20}.modal h2{font-size:25px}.question{font-size:28px;font-weight:950;margin:14px 0;color:#12345a}.answers{display:grid;grid-template-columns:1fr 1fr;gap:9px}.answers button{padding:13px 8px;border:2px solid #c8e8fa;border-radius:12px;background:#edf8ff;font-weight:900;font-size:18px;color:#12345a;cursor:pointer}.answers button:hover{background:#d6f0ff}.feedback{min-height:25px;font-weight:800;margin:10px 0}.action{background:#20a85a;box-shadow:0 4px 0 #087a38}.hidden{display:none!important}
+footer{text-align:center;padding:15px;font-size:12px;color:#476582}
+@media(max-width:700px){.below{grid-template-columns:1fr}.touch{display:flex}.wrap{padding:8px}.pill{padding:6px 8px;font-size:13px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="brand">MATH QUEST <span>DUNIA MATEMATIK · MISI PENGEMBARA</span></div><div class="stats"><div class="pill">🪙 Syiling: <b id="coins">0</b></div><div class="pill">⭐ Skor: <b id="score">0</b></div><div class="pill">❤️ Nyawa: <b id="lives">3</b></div><div class="pill">🏁 Tahap: <b id="level">1</b></div></div></header>
+<div class="gamebox"><canvas id="game" width="960" height="460" aria-label="Permainan platform Math Quest"></canvas></div>
+<div class="touch"><button id="left">◀</button><button id="jump">⬆</button><button id="right">▶</button></div>
+<div class="below">
+<section class="panel"><h2>🎮 Cara bermain</h2><div class="muted">Gerakkan pengembara untuk melompat atas platform dan kumpul syiling. Bila sampai ke peti tanda soal, jawab soalan Matematik untuk membuka laluan ke bendera penamat.</div><div class="controls"><button id="startBtn">Mula / Sambung</button><button id="restartBtn">Mula semula</button></div><p class="muted"><b>Komputer:</b> ← → atau A/D untuk bergerak, Space / ↑ / W untuk melompat. <b>Telefon:</b> guna butang di bawah permainan.</p></section>
+<section class="panel"><h2>📚 Fokus pembelajaran</h2><div class="muted"><b>Tahap 1:</b> Tambah nombor bulat<br><b>Tahap 2:</b> Tolak nombor bulat<br><b>Tahap 3:</b> Darab mudah<br><b>Tahap 4:</b> Bahagi mudah<br><br>Jawapan betul memberikan mata dan syiling bonus. Cuba capai bendera dengan sebanyak mungkin syiling!</div></section>
+</div><footer>Math Quest ialah prototaip permainan pendidikan original untuk projek inovasi PdPC.</footer>
+</div>
+<div class="overlay" id="intro"><div class="modal"><h2>🌟 Selamat datang ke Math Quest!</h2><p>Pengembaraan Matematik bermula sekarang. Kumpul syiling, elak jatuh dan jawab soalan untuk sampai ke penamat.</p><p class="muted">Petua: peti tanda soal akan muncul sepanjang laluan.</p><button class="action" id="playBtn">Jom bermain!</button></div></div>
+<div class="overlay hidden" id="quiz"><div class="modal"><h2>❓ Cabaran Matematik</h2><p id="stageText" class="muted">Jawab untuk buka laluan!</p><div class="question" id="question">8 + 4 = ?</div><div class="answers" id="answers"></div><div class="feedback" id="feedback"></div><button class="action hidden" id="continueBtn">Teruskan pengembaraan</button></div></div>
+<div class="overlay hidden" id="win"><div class="modal"><h2 id="winTitle">🏆 Tahniah!</h2><p id="winText">Kamu berjaya sampai ke penamat!</p><button class="action" id="againBtn">Main lagi</button></div></div>
+<script>
+(() => {
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+const $=id=>document.getElementById(id);
+let keys={},running=false,paused=true,coins=0,score=0,lives=3,level=1,asked=new Set(),quizOpen=false,won=false;
+const worldW=2300, groundY=390;
+let camera=0;
+const player={x:55,y:300,w:30,h:42,vx:0,vy:0,onGround:false,inv:0};
+let platforms=[],coinItems=[],boxes=[],flag={x:2180,y:300};
+function buildWorld(){platforms=[{x:0,y:390,w:400,h:70},{x:470,y:350,w:180,h:30},{x:710,y:310,w:170,h:30},{x:930,y:360,w:210,h:30},{x:1190,y:320,w:190,h:30},{x:1430,y:275,w:200,h:30},{x:1680,y:340,w:210,h:30},{x:1940,y:390,w:360,h:70}];
+coinItems=[];for(let i=0;i<platforms.length;i++){let p=platforms[i];for(let j=0;j<3;j++){coinItems.push({x:p.x+45+j*42,y:p.y-35,got:false,bob:Math.random()*6})}}
+boxes=[{x:300,y:310,used:false},{x:770,y:230,used:false},{x:1260,y:240,used:false},{x:1740,y:260,used:false}];}
+function reset(){coins=0;score=0;lives=3;level=1;asked.clear();won=false;camera=0;player.x=55;player.y=300;player.vx=0;player.vy=0;player.inv=0;buildWorld();updateStats();$('win').classList.add('hidden');$('quiz').classList.add('hidden');$('intro').classList.add('hidden');paused=false;running=true;requestAnimationFrame(loop)}
+function updateStats(){$('coins').textContent=coins;$('score').textContent=score;$('lives').textContent=lives;$('level').textContent=level}
+function rect(x,y,w,h,color){ctx.fillStyle=color;ctx.fillRect(Math.round(x),Math.round(y),w,h)}
+function roundRect(x,y,w,h,r,color){ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill()}
+function drawBackground(){let g=ctx.createLinearGradient(0,0,0,460);g.addColorStop(0,'#69d1ff');g.addColorStop(1,'#d8f8ff');ctx.fillStyle=g;ctx.fillRect(0,0,960,460);
+for(let i=0;i<7;i++){let x=((i*190-camera*.18)%1100+1100)%1100-70;ctx.fillStyle='#9adbb3';ctx.beginPath();ctx.moveTo(x,390);ctx.lineTo(x+90,210+(i%3)*35);ctx.lineTo(x+180,390);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x+75,85+(i%2)*40,22,0,7);ctx.arc(x+100,75+(i%2)*40,30,0,7);ctx.arc(x+130,90+(i%2)*40,21,0,7);ctx.fill()}
+}
+function drawPlatform(p){let x=p.x-camera;rect(x,p.y,p.w,p.h,'#a75b2a');rect(x,p.y,p.w,10,'#49c65b');rect(x,p.y+10,p.w,5,'#2d9d47');for(let i=0;i<p.w;i+=32){rect(x+i,p.y+24,16,4,'#8c431f')}}
+function drawCoin(c){if(c.got)return;let x=c.x-camera,y=c.y+Math.sin(performance.now()/220+c.bob)*4;ctx.fillStyle='#ffb900';ctx.beginPath();ctx.ellipse(x,y,10,14,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#fff078';ctx.lineWidth=3;ctx.stroke();rect(x-2,y-7,4,14,'#fff078')}
+function drawBox(b,i){let x=b.x-camera;roundRect(x,b.y,34,34,5,b.used?'#9aa9b5':'#ffbf28');ctx.strokeStyle='#a86a13';ctx.lineWidth=3;ctx.strokeRect(x+1.5,b.y+1.5,31,31);ctx.fillStyle='#fff';ctx.font='bold 25px system-ui';ctx.textAlign='center';ctx.fillText(b.used?'✓':'?',x+17,b.y+26)}
+function drawPlayer(){let x=player.x-camera,y=player.y;if(player.inv>0&&Math.floor(player.inv/5)%2===0)return;
+/* original explorer character */roundRect(x+5,y+13,21,26,7,'#168fe5');roundRect(x+5,y+32,8,11,3,'#243c5a');roundRect(x+18,y+32,8,11,3,'#243c5a');roundRect(x+2,y+16,7,17,4,'#ffd0a6');roundRect(x+23,y+16,7,17,4,'#ffd0a6');ctx.fillStyle='#ffd0a6';ctx.beginPath();ctx.arc(x+16,y+10,13,0,Math.PI*2);ctx.fill();roundRect(x+2,y-1,27,8,4,'#e95c52');rect(x+8,y-6,18,7,'#e95c52');rect(x+20,y+6,3,4,'#18314b');rect(x+12,y+21,9,3,'#ffdf54');}
+function drawFlag(){let x=flag.x-camera;rect(x,flag.y,5,90,'#fff');ctx.fillStyle='#ff5c54';ctx.beginPath();ctx.moveTo(x+5,flag.y);ctx.lineTo(x+48,flag.y+12);ctx.lineTo(x+5,flag.y+26);ctx.fill();roundRect(x-10,flag.y+86,25,8,4,'#7a4b2b')}
+function draw(){drawBackground();platforms.forEach(drawPlatform);coinItems.forEach(drawCoin);boxes.forEach((b,i)=>drawBox(b,i));drawFlag();drawPlayer();ctx.fillStyle='#12345a';ctx.font='bold 14px system-ui';ctx.textAlign='left';ctx.fillText('MISI: Kumpul syiling dan cari bendera!',18,28)}
+function nearestQuestion(){for(let i=0;i<boxes.length;i++){let b=boxes[i];if(!b.used&&Math.abs((player.x+player.w/2)-(b.x+17))<40&&Math.abs((player.y+player.h)-(b.y+34))<55){return i}}return -1}
+function makeQuestion(i){let a,b,op,ans;if(i===0){a=7+Math.floor(Math.random()*15);b=2+Math.floor(Math.random()*12);op='+';ans=a+b;level=1}else if(i===1){a=15+Math.floor(Math.random()*20);b=2+Math.floor(Math.random()*a);op='−';ans=a-b;level=2}else if(i===2){a=2+Math.floor(Math.random()*9);b=2+Math.floor(Math.random()*9);op='×';ans=a*b;level=3}else{b=2+Math.floor(Math.random()*9);ans=2+Math.floor(Math.random()*9);a=b*ans;op='÷';level=4}
+updateStats();let opts=new Set([ans]);while(opts.size<4){let d=ans+(Math.floor(Math.random()*11)-5);if(d>=0&&d!==ans)opts.add(d)}let arr=[...opts].sort(()=>Math.random()-.5);$('stageText').textContent='Tahap '+level+' · Jawapan betul beri bonus 50 mata dan 2 syiling.';$('question').textContent=`${a} ${op} ${b} = ?`;$('answers').innerHTML='';$('feedback').textContent='';$('continueBtn').classList.add('hidden');arr.forEach(n=>{let btn=document.createElement('button');btn.textContent=n;btn.onclick=()=>{if(quizOpen)return;quizOpen=true;if(n===ans){score+=50;coins+=2;$('feedback').textContent='Betul! Hebat, laluan dibuka!';$('feedback').style.color='#168a46';boxes[i].used=true}else{$('feedback').textContent=`Belum tepat. Jawapan: ${ans}. Cuba teruskan!`;$('feedback').style.color='#c33';lives=Math.max(0,lives-1)}updateStats();$('answers').querySelectorAll('button').forEach(x=>x.disabled=true);$('continueBtn').classList.remove('hidden')};$('answers').appendChild(btn)});paused=true;$('quiz').classList.remove('hidden')}
+function physics(){if(paused||!running)return;player.vx=0;if(keys.ArrowLeft||keys.a||keys.A)player.vx=-4.1;if(keys.ArrowRight||keys.d||keys.D)player.vx=4.1;if((keys.Space||keys.ArrowUp||keys.w||keys.W)&&player.onGround){player.vy=-12.5;player.onGround=false}
+player.x=Math.max(0,Math.min(worldW-player.w,player.x+player.vx));player.vy+=.58;player.y+=player.vy;player.onGround=false;
+for(const p of platforms){if(player.x+player.w>p.x&&player.x<p.x+p.w&&player.y+player.h>=p.y&&player.y+player.h<=p.y+18&&player.vy>=0){player.y=p.y-player.h;player.vy=0;player.onGround=true}}
+if(player.y>510){lives--;player.x=Math.max(30,player.x-160);player.y=250;player.vy=0;player.inv=70;updateStats();if(lives<=0){endGame(false);return}}
+if(player.inv>0)player.inv--;
+for(const c of coinItems){if(!c.got&&Math.abs(player.x+15-c.x)<23&&Math.abs(player.y+20-c.y)<28){c.got=true;coins++;score+=10;updateStats()}}
+let q=nearestQuestion();if(q>=0){makeQuestion(q);return}
+camera=Math.max(0,Math.min(worldW-960,player.x-300));
+if(player.x+player.w>flag.x&&player.y+player.h>flag.y-10){endGame(true)}
+}
+function loop(){if(!running)return;physics();draw();if(running)requestAnimationFrame(loop)}
+function endGame(success){running=false;paused=true;$('win').classList.remove('hidden');$('winTitle').textContent=success?'🏆 Tahniah, Pengembara!':'💪 Cuba Lagi!';$('winText').textContent=success?`Kamu sampai ke penamat! Skor: ${score} · Syiling: ${coins}. Bagus!`:`Nyawa habis. Skor kamu ${score}. Cuba sekali lagi dan kumpul lebih banyak syiling.`}
+window.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight','ArrowUp','Space'].includes(e.code))e.preventDefault();keys[e.code==='Space'?'Space':e.key]=true;if(e.code==='Space')keys.Space=true});
+window.addEventListener('keyup',e=>{keys[e.code==='Space'?'Space':e.key]=false;if(e.code==='Space')keys.Space=false});
+function hold(id,key){let el=$(id);const down=e=>{e.preventDefault();keys[key]=true},up=e=>{e.preventDefault();keys[key]=false};el.addEventListener('pointerdown',down);['pointerup','pointercancel','pointerleave'].forEach(ev=>el.addEventListener(ev,up))}
+hold('left','ArrowLeft');hold('right','ArrowRight');hold('jump','Space');
+$('playBtn').onclick=()=>reset();$('startBtn').onclick=()=>{if(!running){reset()}else{paused=false;$('intro').classList.add('hidden')}};
+$('restartBtn').onclick=()=>reset();$('continueBtn').onclick=()=>{$('quiz').classList.add('hidden');quizOpen=false;paused=false;if(lives<=0){endGame(false)}else requestAnimationFrame(loop)};
+$('againBtn').onclick=()=>reset();
+buildWorld();draw();
+})();
+</script>
+</body>
+</html>
